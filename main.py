@@ -1,9 +1,23 @@
+import sys
+from threading import Thread
 from twisted.internet import reactor, stdio
 from models.identity import Identity
 from p2p.p2p_node import P2PNode
 from services.chat import Chat
-from IO.chat_input import ChatInput
 import random
+
+def input_thread(chat):
+    while True:
+        line = sys.stdin.readline().strip()
+
+        if line == '/exit':
+            reactor.callFromThread(chat.stop)
+            return
+
+        reactor.callFromThread(chat.send_local_message, line)
+
+def start_input(chat):
+    Thread(target=input_thread, args=(chat,), daemon=True).start()
 
 def definir_identidade():
     identity = Identity()
@@ -26,7 +40,7 @@ def conectar_chat():
 
     p2p.request_chain()
 
-    stdio.StandardIO(ChatInput(chat))
+    start_input(chat)
 
     chat.render()
     reactor.run()
@@ -42,7 +56,7 @@ def iniciar_chat():
     print(f"Conectado na porta {sys_port}")
     reactor.listenUDP(sys_port, p2p)
 
-    stdio.StandardIO(ChatInput(chat))
+    start_input(chat)
 
     chat.render()
     reactor.run()

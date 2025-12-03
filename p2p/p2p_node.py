@@ -37,7 +37,6 @@ class P2PNode(DatagramProtocol):
 
     def datagramReceived(self, data, addr):
         try:
-            print(addr)
             payload = json.loads(data.decode())
         except:
             print("Recebido não-JSON:", data)
